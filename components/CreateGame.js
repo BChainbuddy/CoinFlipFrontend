@@ -8,7 +8,7 @@ import { useRef } from "react"
 import Modal from "@/components/Modal"
 
 //CREATE GAME PART
-export default function CreateGame({ needToUpdateUI }) {
+export default function CreateGame({ needToUpdateUI, changeGameId, gameId, rawgameid }) {
     //VARIABLES
     const { isWeb3Enabled, chainId: chainIdHex, runContractFunction, account, web3 } = useMoralis()
     const chainId = parseInt(chainIdHex)
@@ -18,8 +18,8 @@ export default function CreateGame({ needToUpdateUI }) {
     const [_amount, changeAmount] = useState(0)
     const inputRef = useRef(null)
     const [showModal, setShowModal] = useState(false)
-    const [gameId, changeGameId] = useState("0")
-    const [eventListener, isEventListener] = useState(false)
+    // const [gameId, changeGameId] = useState("0")
+    const [isGameCreated, setGameCreated] = useState(false)
 
     const dispatch = useNotification()
 
@@ -41,39 +41,11 @@ export default function CreateGame({ needToUpdateUI }) {
 
     //FUNCTION THAT RETREIVES DATA FROM INPUT
     const setBetAmount = () => {
-        const amount = ethers.utils.parseEther(inputRef.current.value.toString())
-        changeAmount(parseInt(amount))
-    }
-
-    //CANCEL GAME - DIDN'T HAVE ENOUGH TIME TO FINISH
-    async function exitGame() {
-        await cancelGame({ onSuccess: handleSuccess, onError: error => console.log(error) })
-        setShowModal(false)
-    }
-
-    //EVENT LISTENER - DIDN'T HAVE ENOUGH TIME TO FINISH
-    const listenToEvent = async () => {
-        const signers = web3.getSigner()
-        const contract = new ethers.Contract(coinflipAddress, abi, signers)
-        contract.once("gameCreated", () => {
-            contract.on("gameCreated", (_gameId, _challenger, _amount, event) => {
-                let data = {
-                    _gameId: _gameId.toString(),
-                    _challenger,
-                    _amount: _amount.toString(),
-                    event
-                }
-                changeGameId(_gameId.toString())
-                console.log(data)
-            })
-        })
-    }
-
-    useEffect(() => {
-        if (isWeb3Enabled) {
-            listenToEvent()
+        if (inputRef.current.value > 0) {
+            const amount = ethers.utils.parseEther(inputRef.current.value.toString())
+            changeAmount(parseInt(amount))
         }
-    }, [isWeb3Enabled])
+    }
 
     const handleSuccess = async function(tx) {
         await tx.wait(1)
@@ -148,7 +120,7 @@ export default function CreateGame({ needToUpdateUI }) {
                     </div>
                     <div className="mt-4 text-center">Chosen Symbol: {symbolName}</div>
                     <div className="text-center">
-                        Amount to bet: {ethers.utils.formatUnits(_amount.toString(), "ether")}
+                        Amount to bet: {ethers.utils.formatEther(_amount.toString())}
                     </div>
                     <div className="mt-4 text-center">
                         <button
@@ -178,8 +150,23 @@ export default function CreateGame({ needToUpdateUI }) {
                         <div className="justify-center flex flex-col items-center">
                             <div>Waiting for a game to START!!!</div>
                         </div>
-                        <button className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-1 px-20 mt-2 text-lg rounded">
-                            Cancel game
+                        <button
+                            className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-1 px-20 mt-2 text-lg rounded"
+                            onClick={async function() {
+                                await cancelGame({
+                                    onSuccess: handleSuccess,
+                                    onError: error => console.log(error)
+                                })
+                                setGameCreated(false)
+                                setShowModal(false)
+                                changeGameId("0")
+                            }}
+                        >
+                            {gameId != 0 ? (
+                                <div>CancelGame</div>
+                            ) : (
+                                <div className="animate-spin spinner-border h-8 w-8 border-b-2 rounded-full"></div>
+                            )}
                         </button>
                     </Modal>
                 </div>

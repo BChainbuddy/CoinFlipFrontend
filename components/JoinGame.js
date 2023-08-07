@@ -28,7 +28,6 @@ export default function JoinGame({ needToUpdateUI }) {
         }
     }, [isWeb3Enabled])
 
-
     const handleSuccess = async function(tx) {
         await tx.wait(1)
         handleNewNotification(tx)
@@ -37,7 +36,7 @@ export default function JoinGame({ needToUpdateUI }) {
 
     //FUNCTION THAT RETREIVES DATA FROM INPUT
     const setBetAmount = () => {
-        if (inputRef.current.value < 1000000000000000000000) {
+        if (inputRef.current.value > 0) {
             const amount = ethers.utils.parseEther(inputRef.current.value)
             changeAmount(parseInt(amount))
         }
@@ -55,7 +54,7 @@ export default function JoinGame({ needToUpdateUI }) {
 
     //GET ALL AVAILABLE GAMES
     async function updateGames() {
-        const allGames = (await allAvailableGames()).toString()
+        const allGames = (await allGamesBasedOnAmount()).toString()
         checkAvailableGames(allGames)
     }
 
@@ -65,6 +64,13 @@ export default function JoinGame({ needToUpdateUI }) {
         contractAddress: coinflipAddress,
         functionName: "allAvailableGames",
         params: {}
+    })
+
+    const { runContractFunction: allGamesBasedOnAmount } = useWeb3Contract({
+        abi: abi,
+        contractAddress: coinflipAddress,
+        functionName: "allGamesBasedOnAmount",
+        params: { _amount: _amount.toString() }
     })
 
     const { runContractFunction: joinGame, isLoading, isFetching } = useWeb3Contract({
@@ -113,7 +119,7 @@ export default function JoinGame({ needToUpdateUI }) {
                     </div>
                     <div className="mt-4 text-center">Symbol already given!</div>
                     <div className="text-center">
-                        Amount to bet: {ethers.utils.formatUnits(_amount.toString(), "ether")}
+                        Amount to bet: {ethers.utils.formatEther(_amount.toString())}
                     </div>
                     <div className="mt-4 text-center">
                         <button

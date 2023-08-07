@@ -107,7 +107,7 @@ export default function Header({ newUpdateUI, needToUpdateUI }) {
                     <ConnectButton moralisAuth={false} />
                 </div>
                 <div className="bg-amber-400 text-white font-bold text-lg rounded ml-8 p-1 w-80">
-                    CoinFlip Balance: {ethers.utils.formatUnits(balance, "ether")}
+                    CoinFlip Balance: {ethers.utils.formatEther(balance)}
                 </div>
                 <div className="flex space-x-8 ml-8 mt-2">
                     <button
@@ -144,7 +144,9 @@ export default function Header({ newUpdateUI, needToUpdateUI }) {
                         placeholder="0.00"
                         className="md:w-32 text-center mt-2"
                         onChange={event =>
-                            setDepositAmount(ethers.utils.parseEther(event.target.value))
+                            event.target.value > 0
+                                ? setDepositAmount(ethers.utils.parseEther(event.target.value))
+                                : setDepositAmount(0)
                         }
                     />
                     <button
@@ -175,7 +177,9 @@ export default function Header({ newUpdateUI, needToUpdateUI }) {
                         placeholder="0.00"
                         className="md:w-32 text-center mt-2"
                         onChange={event =>
-                            setWithdrawAmount(ethers.utils.parseEther(event.target.value))
+                            event.target.value > 0
+                                ? setWithdrawAmount(ethers.utils.parseEther(event.target.value))
+                                : setWithdrawAmount(0)
                         }
                     />
                     <button

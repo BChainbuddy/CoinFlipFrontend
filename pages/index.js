@@ -300,7 +300,7 @@ export default function Home() {
                     <Header newUpdateUI={newUpdateUI} needToUpdateUI={needToUpdateUI} />
 
                     {isNftOwner ? (
-                        <div className="flex flex-row items-center justify-center ">
+                        <div className="flex flex-row items-center justify-center mt-2">
                             <CreateGame
                                 needToUpdateUI={needToUpdateUI}
                                 changeGame={changeGame}
@@ -313,6 +313,7 @@ export default function Home() {
                                 alt="Coin Image"
                                 width={307}
                                 height={150}
+                                className="mt-8"
                             />
                             <JoinGame needToUpdateUI={needToUpdateUI} />
                         </div>

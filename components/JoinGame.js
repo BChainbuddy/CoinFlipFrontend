@@ -81,7 +81,7 @@ export default function JoinGame({ needToUpdateUI }) {
     })
 
     return (
-        <div className=" mt-8  mr-8 px-15 p-10 ml-6 border-2 bg-amber-100 rounded">
+        <div className=" mt-8  mr-8 px-15 p-10 ml-6 border-2 border-gray-800 bg-amber-100 rounded-md">
             <div className="text-bold text-2xl  text-amber-400 text-center">
                 JOIN AVAILABLE GAME!
             </div>

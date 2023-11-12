@@ -1,3 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.custom-gradient-right {
+    background-image: linear-gradient(to right, hsla(360, 100%, 100%, 1), hsla(54, 100%, 64%, 1));
+}
+
+.custom-gradient-left {
+    background-image: linear-gradient(to left, hsla(31, 100%, 86%, 1), hsla(31, 100%, 72%, 1));
+}
+
+.custom-gradient-bottom {
+    background-image: linear-gradient(to bottom, hsla(54, 100%, 89%, 1), hsla(54, 100%, 64%, 1));
+}
+
+.custom-gradient-top {
+    background-image: linear-gradient(to top, hsla(31, 100%, 86%, 1), hsla(31, 100%, 72%, 1));
+}

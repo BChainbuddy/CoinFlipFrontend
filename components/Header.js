@@ -5,7 +5,6 @@ import { useMoralis, setMsgValue } from "react-moralis"
 import { useEffect, useState } from "react"
 import { ethers } from "ethers"
 import { useNotification } from "web3uikit"
-import { useRef } from "react"
 import Modal from "@/components/Modal"
 
 export default function Header({ newUpdateUI, needToUpdateUI }) {
@@ -100,8 +99,10 @@ export default function Header({ newUpdateUI, needToUpdateUI }) {
     }
 
     return (
-        <div className="border-b-2 flex flex-row">
-            <h1 className="py-12 px-20 font-serif text-amber-400 text-5xl">CoinFlip minigame</h1>
+        <div className="border-b-2 flex flex-row bg-gray-800 border-b-amber-400 py-1 px-3">
+            <h1 className="py-12 px-20 font-serif custom-gradient-right text-transparent bg-clip-text text-5xl">
+                CoinFlip minigame
+            </h1>
             <div className="ml-auto">
                 <div className="py-2 px-4">
                     <ConnectButton moralisAuth={false} />

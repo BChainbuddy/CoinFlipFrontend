@@ -290,38 +290,45 @@ export default function Home() {
 
     //RETURNS THE MAIN PAGE
     return (
-        <div>
+        <div className="">
             {!inGame ? (
-                <div>
+                <div className="flex flex-col h-screen">
                     <Head>
                         <title>CoinFlip</title>
                         <meta name="description" content="CoinFlip minigame" />
                     </Head>
                     <Header newUpdateUI={newUpdateUI} needToUpdateUI={needToUpdateUI} />
-
-                    {isNftOwner ? (
-                        <div className="flex flex-row items-center justify-center mt-2">
-                            <CreateGame
-                                needToUpdateUI={needToUpdateUI}
-                                changeGame={changeGame}
-                                changeGameId={changeGameId}
-                                gameId={gameId}
-                                rawgameid={rawgameid}
-                            />
-                            <Image
-                                src="/CoinFlipCoin.jpg"
-                                alt="Coin Image"
-                                width={307}
-                                height={150}
-                                className="mt-8"
-                            />
-                            <JoinGame needToUpdateUI={needToUpdateUI} />
-                        </div>
-                    ) : (
-                        <div className="flex items-center justify-center">
-                            <CoinMint initiateNftChecker={initiateNftChecker} />
-                        </div>
-                    )}
+                    <div className="custom-gradient-bottom border-2 h-full border-amber-400">
+                        {isNftOwner ? (
+                            <div className="flex flex-row justify-center items-center py-12">
+                                <CreateGame
+                                    needToUpdateUI={needToUpdateUI}
+                                    changeGame={changeGame}
+                                    changeGameId={changeGameId}
+                                    gameId={gameId}
+                                    rawgameid={rawgameid}
+                                />
+                                <Image
+                                    src="/CoinFlipCoin.jpg"
+                                    alt="Coin Image"
+                                    width={307}
+                                    height={150}
+                                    className="rounded-lg border-2 border-gray-800"
+                                />
+                                <JoinGame needToUpdateUI={needToUpdateUI} />
+                            </div>
+                        ) : (
+                            <div className="flex items-center justify-center">
+                                <CoinMint initiateNftChecker={initiateNftChecker} />
+                            </div>
+                        )}
+                    </div>
+                    <div className="bg-gray-800 py-4 px-10 border-t-2 border-amber-400">
+                        <p className="text-white text-center">
+                            This is a github repository, made by Jaka Potokar a.k.a. BChainBuddy
+                            for the chainlink Hackaton 2023.
+                        </p>
+                    </div>
                 </div>
             ) : (
                 <GamePlay

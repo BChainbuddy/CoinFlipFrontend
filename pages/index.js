@@ -325,8 +325,8 @@ export default function Home() {
                     </div>
                     <div className="bg-gray-800 py-4 px-10 border-t-2 border-amber-400">
                         <p className="text-white text-center">
-                            This is a github repository, made by Jaka Potokar a.k.a. BChainBuddy
-                            for the chainlink Hackaton 2023.
+                            This is minigame was made by Jaka Potokar a.k.a. BChainBuddy for the
+                            chainlink Hackaton 2023.
                         </p>
                     </div>
                 </div>

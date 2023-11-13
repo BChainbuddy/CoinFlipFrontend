@@ -131,7 +131,7 @@ export default function Header({ newUpdateUI, needToUpdateUI }) {
                     setShowModal(false)
                 }}
             >
-                <div className="text-2xl text-bold">DEPOSIT FUNDS!</div>
+                <div className="text-2xl text-bold font-mono text-gray-800">DEPOSIT FUNDS!</div>
                 <div className="flex flex-col justify-center items-center">
                     <label htmlFor="Amount" className="mt-1">
                         Choose AMOUNT to deposit:

@@ -79,7 +79,7 @@ export default function CreateGame({ needToUpdateUI, changeGameId, gameId, rawga
     })
 
     return (
-        <div className="mt-8 ml-8 px-15 p-10 mr-6 border-2 border-gray-800 bg-amber-100 rounded-md">
+        <div className="mt-8 ml-8 px-15 p-10 mr-6 border-2 border-gray-800 rounded-md bg-amber-100">
             <div className="text-bold text-2xl  text-gray-800 font-mono text-center">
                 GAME CREATION!
             </div>

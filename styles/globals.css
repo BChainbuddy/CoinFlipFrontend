@@ -17,3 +17,7 @@
 .custom-gradient-top {
     background-image: linear-gradient(to top, hsla(31, 100%, 86%, 1), hsla(31, 100%, 72%, 1));
 }
+
+#background {
+    background-image: url("../public/Untitled design-6.png");
+}

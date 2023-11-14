@@ -298,7 +298,7 @@ export default function Home() {
                         <meta name="description" content="CoinFlip minigame" />
                     </Head>
                     <Header newUpdateUI={newUpdateUI} needToUpdateUI={needToUpdateUI} />
-                    <div className="custom-gradient-bottom border-2 h-full border-amber-400">
+                    <div id="background" className="border-2 h-full border-amber-400">
                         {isNftOwner ? (
                             <div className="flex flex-row justify-center items-center py-12">
                                 <CreateGame

@@ -11,7 +11,7 @@ import Head from "next/head"
 import gifHolder from "@/public/gifholder.gif"
 
 export default function GamePlay({ player, opponent, playerSymbol, gameResults, gameOver }) {
-    const { isWeb3Enabled, chainId: chainIdHex, runContractFunction, account, web3 } = useMoralis()
+    const { chainId: chainIdHex } = useMoralis()
     const chainId = parseInt(chainIdHex)
     const coinflipAddress = chainId in contractAddresses ? contractAddresses[chainId][0] : null
     const gamecoinAddress =
@@ -42,7 +42,7 @@ export default function GamePlay({ player, opponent, playerSymbol, gameResults, 
 
         if (length > 3) {
             changeWaitingForGame(false)
-            var myVar = setInterval(function() {
+            const myVar = setInterval(function() {
                 if (counter == length) {
                     if (playerPoints == 4) {
                         setWinner(player)
@@ -212,93 +212,53 @@ export default function GamePlay({ player, opponent, playerSymbol, gameResults, 
                 <meta name="CoinFlip minigame" content="CoinFlip minigame" />
             </Head>
             <div>
-                <div className="text-center mt-8 py-2 text-2xl font-serif ">COINFLIP minigame</div>
+                <div className="text-center mt-8 py-2 text-3xl font-serif">COINFLIP minigame</div>
                 <div className="flex flex-row justify-center items-center">
                     <div className="flex mx-auto flex-col p-10 px-8 items-center">
                         <div className="text-serif text-xl font-serif">You have chosen:</div>
-                        {playerSymbol.toString() == "0" ? (
-                            <Image
-                                src="/shibgamecoin.jpg"
-                                alt="Coin Transparent Image"
-                                width={150}
-                                height={100}
-                            />
-                        ) : (
-                            <Image
-                                src="/pepegamecoin.jpg"
-                                alt="Coin Transparent Image"
-                                width={150}
-                                height={100}
-                            />
-                        )}
-                        <div className="mt-8">
+                        <Image
+                            src={
+                                playerSymbol.toString() == "0"
+                                    ? "/shibgamecoin.jpg"
+                                    : "/pepegamecoin.jpg"
+                            }
+                            alt="Coin Transparent Image"
+                            width={150}
+                            height={100}
+                        />
+                        <div className="mt-8 flex justify-center">
                             <div>
                                 <div className="text-serif">Address: {player}</div>
                                 <div className="flex flex-row space-x-4 mt-2">
-                                    {playerPoints > 0 ? (
-                                        <Image
-                                            src="/gamecoinnfttransparent.png"
-                                            alt="Coin Transparent Image"
-                                            width={70}
-                                            height={100}
-                                        />
-                                    ) : (
-                                        <Image
-                                            src="/gamecoinnfttransparent.png"
-                                            alt="Coin Transparent Image"
-                                            className="brightness-50"
-                                            width={70}
-                                            height={100}
-                                        />
-                                    )}
-                                    {playerPoints > 1 ? (
-                                        <Image
-                                            src="/gamecoinnfttransparent.png"
-                                            alt="Coin Transparent Image"
-                                            width={70}
-                                            height={100}
-                                        />
-                                    ) : (
-                                        <Image
-                                            src="/gamecoinnfttransparent.png"
-                                            alt="Coin Transparent Image"
-                                            className="brightness-50"
-                                            width={70}
-                                            height={100}
-                                        />
-                                    )}
-                                    {playerPoints > 2 ? (
-                                        <Image
-                                            src="/gamecoinnfttransparent.png"
-                                            alt="Coin Transparent Image"
-                                            width={70}
-                                            height={100}
-                                        />
-                                    ) : (
-                                        <Image
-                                            src="/gamecoinnfttransparent.png"
-                                            alt="Coin Transparent Image"
-                                            className="brightness-50"
-                                            width={70}
-                                            height={100}
-                                        />
-                                    )}
-                                    {playerPoints > 3 ? (
-                                        <Image
-                                            src="/gamecoinnfttransparent.png"
-                                            alt="Coin Transparent Image"
-                                            width={70}
-                                            height={100}
-                                        />
-                                    ) : (
-                                        <Image
-                                            src="/gamecoinnfttransparent.png"
-                                            alt="Coin Transparent Image"
-                                            className="brightness-50"
-                                            width={70}
-                                            height={100}
-                                        />
-                                    )}
+                                    <Image
+                                        src="/gamecoinnfttransparent.png"
+                                        alt="Coin Transparent Image"
+                                        className={playerPoints > 0 ? "" : "brightness-50"}
+                                        width={70}
+                                        height={100}
+                                    />
+                                    <Image
+                                        src="/gamecoinnfttransparent.png"
+                                        alt="Coin Transparent Image"
+                                        className={playerPoints > 1 ? "" : "brightness-50"}
+                                        width={70}
+                                        height={100}
+                                    />
+
+                                    <Image
+                                        src="/gamecoinnfttransparent.png"
+                                        alt="Coin Transparent Image"
+                                        className={playerPoints > 2 ? "" : "brightness-50"}
+                                        width={70}
+                                        height={100}
+                                    />
+                                    <Image
+                                        src="/gamecoinnfttransparent.png"
+                                        alt="Coin Transparent Image"
+                                        className={playerPoints > 3 ? "" : "brightness-50"}
+                                        width={70}
+                                        height={100}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -340,89 +300,48 @@ export default function GamePlay({ player, opponent, playerSymbol, gameResults, 
                     </div>
                     <div className="mx-auto flex flex-col p-10 px-8 items-center">
                         <div className="text-serif text-xl font-serif">Opponent has chosen:</div>
-                        {playerSymbol.toString() == "0" ? (
-                            <Image
-                                src="/pepegamecoin.jpg"
-                                alt="Coin Transparent Image"
-                                width={150}
-                                height={100}
-                            />
-                        ) : (
-                            <Image
-                                src="/shibgamecoin.jpg"
-                                alt="Coin Transparent Image"
-                                width={150}
-                                height={100}
-                            />
-                        )}
+                        <Image
+                            src={
+                                playerSymbol.toString() == "0"
+                                    ? "/pepegamecoin.jpg"
+                                    : "/shibgamecoin.jpg"
+                            }
+                            alt="Coin Transparent Image"
+                            width={150}
+                            height={100}
+                        />
                         <div className="mt-8">
                             <div>
                                 <div className="text-serif">Address: {opponent}</div>
                                 <div className="flex flex-row space-x-4 mt-2">
-                                    {opponentPoints > 0 ? (
-                                        <Image
-                                            src="/gamecoinnfttransparent.png"
-                                            alt="Coin Transparent Image"
-                                            width={70}
-                                            height={100}
-                                        />
-                                    ) : (
-                                        <Image
-                                            src="/gamecoinnfttransparent.png"
-                                            alt="Coin Transparent Image"
-                                            className="brightness-50"
-                                            width={70}
-                                            height={100}
-                                        />
-                                    )}
-                                    {opponentPoints > 1 ? (
-                                        <Image
-                                            src="/gamecoinnfttransparent.png"
-                                            alt="Coin Transparent Image"
-                                            width={70}
-                                            height={100}
-                                        />
-                                    ) : (
-                                        <Image
-                                            src="/gamecoinnfttransparent.png"
-                                            alt="Coin Transparent Image"
-                                            className="brightness-50"
-                                            width={70}
-                                            height={100}
-                                        />
-                                    )}{" "}
-                                    {opponentPoints > 2 ? (
-                                        <Image
-                                            src="/gamecoinnfttransparent.png"
-                                            alt="Coin Transparent Image"
-                                            width={70}
-                                            height={100}
-                                        />
-                                    ) : (
-                                        <Image
-                                            src="/gamecoinnfttransparent.png"
-                                            alt="Coin Transparent Image"
-                                            className="brightness-50"
-                                            width={70}
-                                            height={100}
-                                        />
-                                    )}{" "}
-                                    {opponentPoints > 3 ? (
-                                        <Image
-                                            src="/gamecoinnfttransparent.png"
-                                            alt="Coin Transparent Image"
-                                            width={70}
-                                            height={100}
-                                        />
-                                    ) : (
-                                        <Image
-                                            src="/gamecoinnfttransparent.png"
-                                            alt="Coin Transparent Image"
-                                            className="brightness-50"
-                                            width={70}
-                                            height={100}
-                                        />
-                                    )}
+                                    <Image
+                                        src="/gamecoinnfttransparent.png"
+                                        alt="Coin Transparent Image"
+                                        className={opponentPoints > 0 ? "" : "brightness-50"}
+                                        width={70}
+                                        height={100}
+                                    />
+                                    <Image
+                                        src="/gamecoinnfttransparent.png"
+                                        alt="Coin Transparent Image"
+                                        className={opponentPoints > 1 ? "" : "brightness-50"}
+                                        width={70}
+                                        height={100}
+                                    />
+                                    <Image
+                                        src="/gamecoinnfttransparent.png"
+                                        alt="Coin Transparent Image"
+                                        className={opponentPoints > 2 ? "" : "brightness-50"}
+                                        width={70}
+                                        height={100}
+                                    />
+                                    <Image
+                                        src="/gamecoinnfttransparent.png"
+                                        alt="Coin Transparent Image"
+                                        className={opponentPoints > 3 ? "" : "brightness-50"}
+                                        width={70}
+                                        height={100}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -448,17 +367,27 @@ export default function GamePlay({ player, opponent, playerSymbol, gameResults, 
                     setShowModal(false)
                 }}
             >
-                <div className="justify-center flex flex-col items-center">
-                    {winner.toString().toLocaleLowerCase() ==
-                    player.toString().toLocaleLowerCase() ? (
-                        <div className="font-bold font-sans text-xl text-gray-300">
-                            YOU won the GAME!!! CONGRATULATIONS!!! 🥳 🥳 🥳
-                        </div>
-                    ) : (
-                        <div className="font-bold font-sans text-xl text-gray-300">
-                            You've LOST! 😓😓😓 BETTER LUCK NEXT TIME!!! 🤗
-                        </div>
-                    )}
+                <div className="font-bold font-sans text-xl text-gray-300 justify-center flex items-center">
+                    <span
+                        className={
+                            winner.toString().toLocaleLowerCase() ==
+                            player.toString().toLocaleLowerCase()
+                                ? ""
+                                : "hidden"
+                        }
+                    >
+                        YOU won the GAME!!! CONGRATULATIONS!!! 🥳 🥳 🥳
+                    </span>
+                    <span
+                        className={
+                            winner.toString().toLocaleLowerCase() ==
+                            player.toString().toLocaleLowerCase()
+                                ? "hidden"
+                                : ""
+                        }
+                    >
+                        You've LOST! 😓😓😓 BETTER LUCK NEXT TIME!!! 🤗
+                    </span>
                 </div>
             </Modal>
             <Modal

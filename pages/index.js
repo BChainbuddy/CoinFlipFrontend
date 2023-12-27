@@ -312,7 +312,7 @@ export default function Home() {
                                     src="/CoinFlipCoin.jpg"
                                     alt="Coin Image"
                                     width={307}
-                                    height={150}
+                                    height={100}
                                     className="rounded-lg border-2 border-gray-800"
                                 />
                                 <JoinGame needToUpdateUI={needToUpdateUI} />

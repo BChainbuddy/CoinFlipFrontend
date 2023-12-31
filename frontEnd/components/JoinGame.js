@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { ethers } from "ethers"
 import { useNotification } from "web3uikit"
 import { useRef } from "react"
+require("dotenv").config()
 
 //JOIN GAME PART
 export default function JoinGame({ needToUpdateUI }) {
@@ -54,8 +55,7 @@ export default function JoinGame({ needToUpdateUI }) {
 
     //GET ALL AVAILABLE GAMES
     async function updateGames() {
-        const allGames = (await allGamesBasedOnAmount()).toString()
-        checkAvailableGames(allGames)
+        allGamesBasedOnAmountEthers()
     }
 
     //SMART CONTRACT FUNCTIONS TO INTERACT WITH
@@ -79,6 +79,69 @@ export default function JoinGame({ needToUpdateUI }) {
         functionName: "joinGame",
         params: { _amount: _amount.toString() }
     })
+
+    // ETHERS CONTRACT INTERACTIONS
+
+    const allGamesBasedOnAmountEthers = async () => {
+        try {
+            const provider = new ethers.providers.Web3Provider(window.ethereum)
+            const signer = provider.getSigner()
+            const contract = new ethers.Contract(coinflipAddress, abi, signer)
+
+            // Estimate gas limit for the transaction
+            const estimatedGas = await contract.estimateGas.allGamesBasedOnAmount(
+                _amount.toString()
+            )
+            const gasLimit = estimatedGas
+                .mul(ethers.BigNumber.from("110"))
+                .div(ethers.BigNumber.from("100")) // Add a buffer
+
+            // Get current gas price
+            const gasPrice = await provider.getGasPrice()
+
+            // Send the transaction with the estimated gas limit and current gas price
+            const transaction = await contract.allGamesBasedOnAmount(_amount.toString())
+
+            // Logic if success!
+            checkAvailableGames(transaction.toString())
+        } catch (error) {
+            console.error("Transaction failed:", error)
+        }
+    }
+
+    const joinGameEthers = async () => {
+        try {
+            const provider = new ethers.providers.Web3Provider(window.ethereum)
+            const signer = provider.getSigner()
+            const contract = new ethers.Contract(coinflipAddress, abi, signer)
+
+            // Estimate gas limit for the transaction
+            const estimatedGas = await contract.estimateGas.joinGame(_amount.toString())
+            const gasLimit = estimatedGas
+                .mul(ethers.BigNumber.from("110"))
+                .div(ethers.BigNumber.from("100")) // Add a buffer
+
+            // Get current gas price
+            const gasPrice = await provider.getGasPrice()
+
+            // Send the transaction with the estimated gas limit and current gas price
+            const transaction = await contract.joinGame(_amount.toString(), {
+                gasLimit,
+                gasPrice
+            })
+
+            // Wait for the transaction to be mined
+            const receipt = await transaction.wait()
+            console.log("Transaction successful!")
+
+            // Logic if success!
+            if (receipt.status === 1) {
+                JoinGameNeedToUpdateUI()
+            }
+        } catch (error) {
+            console.error("Transaction failed:", error)
+        }
+    }
 
     return (
         <div className=" mt-8  mr-8 px-15 p-10 ml-6 border-2 border-gray-800 bg-amber-100 rounded-md">
@@ -124,12 +187,7 @@ export default function JoinGame({ needToUpdateUI }) {
                     <div className="mt-4 text-center">
                         <button
                             className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-5 px-8 text-2xl rounded"
-                            onClick={async function() {
-                                await joinGame({
-                                    onSuccess: handleSuccess,
-                                    onError: error => console.log(error)
-                                })
-                            }}
+                            onClick={joinGameEthers}
                             disabled={isLoading || isFetching}
                         >
                             {isLoading || isFetching ? (

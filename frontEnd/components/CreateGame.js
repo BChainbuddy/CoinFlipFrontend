@@ -6,9 +6,10 @@ import { ethers } from "ethers"
 import { useNotification } from "web3uikit"
 import { useRef } from "react"
 import Modal from "@/components/Modal"
+require("dotenv").config()
 
 //CREATE GAME PART
-export default function CreateGame({ needToUpdateUI, changeGameId, gameId, rawgameid }) {
+export default function CreateGame({ needToUpdateUI, changeGameId, gameId }) {
     //VARIABLES
     const { isWeb3Enabled, chainId: chainIdHex, runContractFunction, account, web3 } = useMoralis()
     const chainId = parseInt(chainIdHex)
@@ -18,7 +19,6 @@ export default function CreateGame({ needToUpdateUI, changeGameId, gameId, rawga
     const [_amount, changeAmount] = useState(0)
     const inputRef = useRef(null)
     const [showModal, setShowModal] = useState(false)
-    // const [gameId, changeGameId] = useState("0")
     const [isGameCreated, setGameCreated] = useState(false)
 
     const dispatch = useNotification()
@@ -78,6 +78,79 @@ export default function CreateGame({ needToUpdateUI, changeGameId, gameId, rawga
         params: { _gameId: gameId.toString() }
     })
 
+    // ETHERS CONTRACT INTERACTIONS
+    const startGameEthers = async () => {
+        try {
+            const provider = new ethers.providers.Web3Provider(window.ethereum)
+            const signer = provider.getSigner()
+            const contract = new ethers.Contract(coinflipAddress, abi, signer)
+
+            // Estimate gas limit for the transaction
+            const estimatedGas = await contract.estimateGas.startGame(_amount.toString(), _symbol)
+            const gasLimit = estimatedGas
+                .mul(ethers.BigNumber.from("110"))
+                .div(ethers.BigNumber.from("100")) // Add a buffer
+
+            // Get current gas price
+            const gasPrice = await provider.getGasPrice()
+
+            // Send the transaction with the estimated gas limit and current gas price
+            const transaction = await contract.startGame(_amount.toString(), _symbol, {
+                gasLimit,
+                gasPrice
+            })
+
+            // Wait for the transaction to be mined
+            const receipt = await transaction.wait()
+            console.log("Transaction successful!")
+
+            // Logic if success!
+            if (receipt.status === 1) {
+                setShowModal(true)
+            }
+        } catch (error) {
+            console.error("Transaction failed:", error)
+        }
+    }
+
+    const cancelGameEthers = async () => {
+        if (gameId !== "0") {
+            try {
+                const provider = new ethers.providers.Web3Provider(window.ethereum)
+                const signer = provider.getSigner()
+                const contract = new ethers.Contract(coinflipAddress, abi, signer)
+
+                // Estimate gas limit for the transaction
+                const estimatedGas = await contract.estimateGas.cancelGame(gameId.toString())
+                const gasLimit = estimatedGas
+                    .mul(ethers.BigNumber.from("110"))
+                    .div(ethers.BigNumber.from("100")) // Add a buffer
+
+                // Get current gas price
+                const gasPrice = await provider.getGasPrice()
+
+                // Send the transaction with the estimated gas limit and current gas price
+                const transaction = await contract.cancelGame(gameId.toString(), {
+                    gasLimit,
+                    gasPrice
+                })
+
+                // Wait for the transaction to be mined
+                const receipt = await transaction.wait()
+                console.log("Transaction successful!")
+
+                // Logic if success!
+                if (receipt.status === 1) {
+                    setGameCreated(false)
+                    setShowModal(false)
+                    changeGameId("0")
+                }
+            } catch (error) {
+                console.error("Transaction failed:", error)
+            }
+        }
+    }
+
     return (
         <div className="mt-8 ml-8 px-15 p-10 mr-6 border-2 border-gray-800 rounded-md bg-amber-100">
             <div className="text-bold text-2xl  text-gray-800 font-mono text-center">
@@ -127,13 +200,7 @@ export default function CreateGame({ needToUpdateUI, changeGameId, gameId, rawga
                     <div className="mt-4 text-center">
                         <button
                             className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-5 px-8 text-2xl rounded"
-                            onClick={async function() {
-                                await startGame({
-                                    onSuccess: handleSuccess,
-                                    onError: error => console.log(error)
-                                })
-                                setShowModal(true)
-                            }}
+                            onClick={startGameEthers}
                             disabled={isLoading || isFetching}
                         >
                             {isLoading || isFetching ? (
@@ -154,15 +221,7 @@ export default function CreateGame({ needToUpdateUI, changeGameId, gameId, rawga
                         </div>
                         <button
                             className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-1 px-20 mt-2 text-lg rounded"
-                            onClick={async function() {
-                                await cancelGame({
-                                    onSuccess: handleSuccess,
-                                    onError: error => console.log(error)
-                                })
-                                setGameCreated(false)
-                                setShowModal(false)
-                                changeGameId("0")
-                            }}
+                            onClick={cancelGameEthers}
                         >
                             {gameId != 0 ? (
                                 <div>CancelGame</div>

@@ -41,9 +41,10 @@ console.log("Listening to an game Created event...");
 contract.on("gameCreated", (_gameId, _challenger, _amount, _creatorSymbol) => {
   // Send data to connected WebSocket clients
   let gameCreated = {
-    gameId: _gameId,
+    stage: 0,
+    gameId: _gameId.toString(),
     challenger: _challenger,
-    amount: _amount,
+    amount: _amount.toString(),
     creatorSymbol: _creatorSymbol,
   };
 
@@ -68,10 +69,11 @@ contract.on(
   (_gameId, _challenger, _joiner, _amount, _creatorSymbol) => {
     // Send data to connected WebSocket clients
     let gameStarted = {
-      gameId: _gameId,
+      stage: 1,
+      gameId: _gameId.toString(),
       challenger: _challenger,
       joiner: _joiner,
-      amount: _amount,
+      amount: _amount.toString(),
       creatorSymbol: _creatorSymbol,
     };
 
@@ -97,7 +99,8 @@ contract.on("coinFlipResult", (_gameId, _winningSymbol) => {
   console.log("Game results!");
   // Send data to connected WebSocket clients
   let results = {
-    gameId: _gameId,
+    stage: 2,
+    gameId: _gameId.toString(),
     winningSymbol: _winningSymbol,
   };
 
@@ -117,10 +120,11 @@ contract.on("gameFinished", (_gameId, _winner, _loser, _amount) => {
   console.log("Game has finished");
   // Send data to connected WebSocket clients
   let gameFinished = {
-    gameId: _gameId,
+    stage: 3,
+    gameId: _gameId.toString(),
     winner: _winner,
     loser: _loser,
-    amount: _amount,
+    amount: _amount.toString(),
   };
 
   //Send data to frontend

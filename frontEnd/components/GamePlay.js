@@ -39,10 +39,12 @@ export default function GamePlay({ player, opponent, playerSymbol, gameResults, 
         //SOMETHING HAPPENS, WE DO THE FLIP FOR THE CURRENT ONE(THE ONE ADDED IN)
         const length = gameResults.length
         let counter = 0
+        console.log(`HIS IS A STATE VARIABLE OF GAME RESULTS! ${gameResults}`)
 
         if (length > 3) {
             changeWaitingForGame(false)
             const myVar = setInterval(function() {
+                // If it is the last one
                 if (counter == length) {
                     if (playerPoints == 4) {
                         setWinner(player)
@@ -56,9 +58,9 @@ export default function GamePlay({ player, opponent, playerSymbol, gameResults, 
                     clearInterval(myVar)
                     setTimeout(gameOver, 15000)
                 } else {
-                    //FOR LOGGIN PURPOSES
-                    console.log(gameResults[counter])
-                    console.log(playerSymbol)
+                    //FOR LOGGING PURPOSES
+                    console.log(`This is the result ${gameResults[counter]}`)
+                    console.log(`This is the player symbol ${playerSymbol}`)
                     //TO DO THE GIF
                     if (gameResults[counter] == 0) {
                         changeCoinFlip(0)
@@ -92,9 +94,11 @@ export default function GamePlay({ player, opponent, playerSymbol, gameResults, 
     //WHEN THE GIF IS CALLED IT PERFORMS THE GIF ANIMATED COINFLIP
     useEffect(() => {
         if (coinflip != 2) {
+            // GIF ANIMATION
             console.log("THE PLAYER POINTS OR OPPONENT POINTS CHANGED")
             reloadGif()
-            const timeout = setTimeout(() => {
+            // BACK TO PLACEHOLDER
+            setTimeout(() => {
                 changeCoinFlip(2)
                 console.log("GIF IS SET TO GIF HOLDER")
             }, 5000)

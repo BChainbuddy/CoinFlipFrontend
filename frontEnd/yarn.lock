@@ -3847,6 +3847,11 @@ dotdir-regex@^0.1.0:
   resolved "https://registry.npmjs.org/dotdir-regex/-/dotdir-regex-0.1.0.tgz"
   integrity sha512-00odj/E9hnwoi/W0ZcudUwlR/OSjhMgcBgevA4G8tgSJdGy0cVIKrmKLkh97Kw6aXvE47islrIisBld19+X1AQ==
 
+dotenv@^16.3.1:
+  version "16.3.1"
+  resolved "https://registry.npmjs.org/dotenv/-/dotenv-16.3.1.tgz"
+  integrity sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==
+
 drbg.js@^1.0.1:
   version "1.0.1"
   resolved "https://registry.npmjs.org/drbg.js/-/drbg.js-1.0.1.tgz"

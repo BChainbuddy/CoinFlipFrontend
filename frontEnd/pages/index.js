@@ -25,14 +25,15 @@ export default function Home() {
 
     //GET FROM START EVENT TO PASS TO GAME
     const [gameId, changeGameId] = useState("0")
-    const [rawgameid, changerawgameid] = useState()
     const [player, setPlayer] = useState("")
     const [opponent, setOpponent] = useState("")
     const [playerSymbol, setPlayerSymbol] = useState()
     const [gameResults, setGameResult] = useState([])
 
     //////////////////////////////////////
-    const { isWeb3Enabled, chainId: chainIdHex, runContractFunction, account, web3 } = useMoralis()
+    const { isWeb3Enabled, chainId: chainIdHex, account } = useMoralis()
+    const chainId = parseInt(chainIdHex)
+    const coinflipAddress = chainId in contractAddresses ? contractAddresses[chainId][0] : null
 
     //CONNECTING TO WEBSOCKET SERVER
     useEffect(() => {
@@ -48,228 +49,85 @@ export default function Home() {
                 console.error("WebSocket error:", error)
             }
 
+            let currentGameId
+            // THIS WILL PROCESS THE DATA THAT SERVER SENDS, ALL THE EVENTS
             ws.onmessage = event => {
-                console.log(event.data)
-            }
-        }
-    }, [isWeb3Enabled])
-
-    //////////////////////////////////////
-    //EVENT LISTENERS
-    const chainId = parseInt(chainIdHex)
-    const coinflipAddress = chainId in contractAddresses ? contractAddresses[chainId][0] : null
-
-    //LISTENER FOR EVENT GAMECREATED, LISTENS FOR GAMEID, TO ENABLE CANCELGAME FUNCTION
-    const listenToEventGameCreated = () => {
-        const provider = new ethers.providers.Web3Provider(window.ethereum)
-        const signers = web3.getSigner()
-        console.log("Listening to an game Created event...")
-        const contract = new ethers.Contract(coinflipAddress, abi, signers)
-        const resultFilter = contract.filters.gameCreated(null, account)
-        provider.once("block", () => {
-            contract.once(resultFilter, (_gameId, _challenger, _amount, _creatorSymbol) => {
-                changeGameId(_gameId.toString())
-                changerawgameid(_gameId)
-                console.log("Game was created!")
-                console.log(_gameId.toString())
-                setPlayerSymbol(_creatorSymbol)
-            })
-        })
-
-        //ETHERS V6
-        // contract.on("gameStarted", (_gameId, _challenger, _amount, _creatorSymbol) => {
-        //     if (_challenger.toLowerCase() == account) {
-        //         changeGameId(_gameId.toString())
-        //         console.log("Game was created!!!!")
-        //         console.log("This is the gameId of the game", _gameId.toString())
-        //         setPlayerSymbol(_creatorSymbol)
-        //     }
-        // })
-    }
-
-    //LISTENER FOR EVENT GAME STARTED, CHANGES TO A GAME IF THE GAME STARTS
-    const listenToEventGameStarted = () => {
-        const provider = new ethers.providers.Web3Provider(window.ethereum)
-        const signers = web3.getSigner()
-        console.log("Listening to game Started event in coinflip game...")
-        const contract = new ethers.Contract(coinflipAddress, abi, signers)
-        const gameStartedFilter = contract.filters.gameStarted(null, account)
-        const gameStartedFilter2 = contract.filters.gameStarted(null, null, account)
-        provider.once("block", () => {
-            contract.once(
-                gameStartedFilter || gameStartedFilter2,
-                (_gameId, _challenger, _joiner, _amount, _creatorSymbol, event) => {
-                    if (_challenger.toLowerCase() == account) {
-                        changeGameId(_gameId.toString())
-                        changerawgameid(_gameId)
-                        setPlayer(_challenger.toString())
-                        setOpponent(_joiner.toString())
-                        setPlayerSymbol(_creatorSymbol.toString())
+                let data = JSON.parse(event.data)
+                console.log(data)
+                if (data.stage === 0) {
+                    // EVENT GAMECREATED
+                    console.log(data.gameId)
+                    console.log(data.challenger.toString())
+                    console.log(data.amount.toString())
+                    console.log(data.creatorSymbol.toString())
+                    console.log("GAME CREATED EVENT FIRED!")
+                    changeGameId(data.gameId)
+                    currentGameId = data.gameId
+                    console.log(`Game was created! This is the game Id ${data.gameId}`)
+                    setPlayerSymbol(data.creatorSymbol.toString())
+                } else if (data.stage === 1) {
+                    // EVENT GAMESTARTED
+                    console.log("GAME STARTED EVENT FIRED!")
+                    if (data.challenger.toLowerCase() == account) {
+                        console.log("ACCOUNT IS CHALLENGER")
+                        changeGameId(data.gameId)
+                        currentGameId = data.gameId
+                        setPlayer(data.challenger.toString())
+                        setOpponent(data.joiner.toString())
+                        setPlayerSymbol(data.creatorSymbol.toString())
                         console.log("Game has started in coinflip game...")
                         changeGame(true)
                     }
-                    if (_joiner.toLowerCase() == account) {
-                        changeGameId(_gameId.toString())
-                        changerawgameid(_gameId)
-                        setPlayer(_joiner.toString())
-                        setOpponent(_challenger.toString())
-                        const getPlayerSymbol = _creatorSymbol == 0 ? 1 : 0
+                    if (data.joiner.toLowerCase() == account) {
+                        console.log("ACCOUNT IS JOINER")
+                        changeGameId(data.gameId)
+                        currentGameId = data.gameId
+                        setPlayer(data.joiner.toString())
+                        setOpponent(data.challenger.toString())
+                        const getPlayerSymbol = data.creatorSymbol == 0 ? 1 : 0
                         setPlayerSymbol(getPlayerSymbol.toString())
                         console.log("Game has started in coinflip game...")
                         changeGame(true)
                     }
+                } else if (data.stage === 2) {
+                    console.log("COINFLIP RESULTS")
+                    console.log(
+                        `CurrentGameID ${currentGameId}, this is its type ${typeof currentGameId}`
+                    )
+                    console.log(`GameId ${data.gameId}, this is its type ${typeof data.gameId}`)
+                    // EVENT COINFLIP RESULT
+                    if (data.gameId == currentGameId) {
+                        console.log("COINFLIP RESULT EVENT FIRED!")
+                        console.log(
+                            `THIS IS THE RESULT OF THE GAME ${data.winningSymbol.toString()}`
+                        )
+                        setGameResult(gameResults => [
+                            ...gameResults,
+                            data.winningSymbol.toString()
+                        ])
+                    }
+                } else if (data.stage === 3) {
+                    // EVENT END GAME
+                    console.log("END GAME EVENT FIRED!")
+                    if (data.winner.toLowerCase() == account) {
+                        console.log("Game has finished, the connected account was a Winner!")
+                        console.log("the account address:", account.toString())
+                    } else {
+                        console.log("Game has finished, the connected account was a Loser!")
+                        console.log("the account address:", account.toString())
+                    }
                 }
-            )
-        })
-
-        //ETHERS V6
-        // contract.on(
-        //     "gameStarted",
-        //     (_gameId, _challenger, _joiner, _amount, _creatorSymbol, event) => {
-        //         console.log("GAME HAS STARTED EVENT HAS BEEN TRIGGERED")
-        //         if (_challenger.toLowerCase() == account) {
-        //             changeGameId(_gameId.toString())
-        //             changerawgameid(_gameId)
-        //             setPlayer(_challenger.toString())
-        //             setOpponent(_joiner.toString())
-        //             setPlayerSymbol(_creatorSymbol.toString())
-        //             console.log("Game has started in coinflip game...")
-        //             changeGame(true)
-        //         }
-        //         if (_joiner.toLowerCase() == account) {
-        //             changeGameId(_gameId.toString())
-        //             changerawgameid(_gameId)
-        //             setPlayer(_joiner.toString())
-        //             setOpponent(_challenger.toString())
-        //             const getPlayerSymbol = _creatorSymbol == 0 ? 1 : 0
-        //             setPlayerSymbol(getPlayerSymbol.toString())
-        //             console.log("Game has started in coinflip game...")
-        //             changeGame(true)
-        //         }
-        //     }
-        // )
-    }
-
-    //LISTENER FOR EVENT GAMERESULTS, TO GET THE RESULTS OF EACH GAME AND STORE IT IN gameResults
-    const listenToEventResult = () => {
-        const provider = new ethers.providers.Web3Provider(window.ethereum)
-        const signers = web3.getSigner()
-        console.log("Listening to an game result event in coinflip game...")
-        const contract = new ethers.Contract(coinflipAddress, abi, signers)
-        const resultFilter = contract.filters.coinFlipResult(rawgameid)
-        provider.once("block", () => {
-            contract.on(resultFilter, (_gameId, _winningSymbol) => {
-                console.log(
-                    "The result of game",
-                    _gameId.toString(),
-                    "was",
-                    JSON.stringify(_winningSymbol)
-                )
-
-                setGameResult(gameResults => [...gameResults, _winningSymbol])
-            })
-        })
-
-        //ETHERS V6
-        // contract.on("coinFlipResult", (_gameId, _winningSymbol) => {
-        //     if (rawgameid == _gameId) {
-        //         console.log("THE RESULT OF THE GAME IS IN")
-        //         console.log("The result of game", _gameId, "was", _winningSymbol)
-        //         setGameResult(gameResults => [...gameResults, _winningSymbol])
-        //     }
-        //     console.log("RETURNED GAMEID", _gameId.toString())
-        //     console.log("RAWGAMEID", rawgameid)
-        //     console.log("GAMEID", gameId)
-        // })
-    }
-
-    //FUNCTION TO TURN OFF LAST EVENT LISTENER FOR GAMERESULTS
-    const killEventResult = () => {
-        const provider = new ethers.providers.Web3Provider(window.ethereum)
-        const signers = web3.getSigner()
-        console.log("Killing the game result event in coinflip game...")
-        const contract = new ethers.Contract(coinflipAddress, abi, signers)
-        const resultFilter = contract.filters.coinFlipResult(gameId)
-        contract.off(resultFilter)
-    }
-
-    //FUNCTION TO CHECK IF THE EVENT REMOVER IS WORKING
-    const listenerChecker = () => {
-        const signers = web3.getSigner()
-        const contract = new ethers.Contract(coinflipAddress, abi, signers)
-        const resultFilter = contract.filters.coinFlipResult(gameId)
-        if (contract.listenerCount(resultFilter) == 0) {
-            console.log("CoinFlipResult event has been removed successfuly!")
-        } else {
-            console.log(
-                "Number of event results listener is: ",
-                contract.listenerCount(resultFilter)
-            )
-        }
-    }
-
-    //LISTENER FOR EVENT GAMEFINISHED TO GET THE WINNER AND LOSER OF THE GAME
-    const listenToEventGameFinished = () => {
-        const provider = new ethers.providers.Web3Provider(window.ethereum)
-        const signers = web3.getSigner()
-        console.log("Listening to a game finished event in coinflip minigame...")
-        const contract = new ethers.Contract(coinflipAddress, abi, signers)
-        const resultFilter1 = contract.filters.gameFinished(null, account)
-        const resultFilter2 = contract.filters.gameFinished(null, null, account)
-        provider.once("block", () => {
-            contract.once(resultFilter1 || resultFilter2, (_gameId, _winner, _loser, _amount) => {
-                console.log("loser", _loser.toString().toLowerCase())
-                console.log("winner", _winner.toString().toLowerCase())
-                if (_winner.toLowerCase() == account) {
-                    console.log("Game has finished, the connected account was a Winner!")
-                    console.log("the account address:", account.toString())
-                } else {
-                    console.log("Game has finished, the connected account was a Loser!")
-                    console.log("the account address:", account.toString())
-                }
-            })
-        })
-
-        //ETHERS V6
-        // contract.on("gameFinished", (_gameId, _winner, _loser, _amount) => {
-        //     console.log("loser", _loser.toString().toLowerCase())
-        //     console.log("winner", _winner.toString().toLowerCase())
-        //     if (_winner.toLowerCase() == account) {
-        //         console.log("Game has finished, the connected account was a Winner!")
-        //         console.log("the account address:", account.toString())
-        //     }
-        //     if (_loser.toLowerCase() == account) {
-        //         console.log("Game has finished, the connected account was a Loser!")
-        //         console.log("the account address:", account.toString())
-        //     }
-        // })
-    }
-
-    //SETTING UP LISTENERS WHEN WE ARE NOT IN GAME AND WHEN WEB3 IS ENABLED
-    useEffect(() => {
-        if (!inGame) {
-            if (isWeb3Enabled) {
-                listenToEventGameCreated()
-                listenToEventGameStarted()
-                listenToEventGameFinished()
             }
         }
-    }, [inGame, isWeb3Enabled])
-
-    //SETTING UP LISTENER WHEN THE GAME STARTS AND WE GET GAMEID
-    useEffect(() => {
-        if (isWeb3Enabled && gameId != "0") {
-            listenToEventResult()
-        }
-    }, [gameId])
+    }, [isWeb3Enabled])
 
     //RESTARTING OF THE MAIN PAGE, CLEARING THE THE STATE VARIABLES, AND ACTIVATING THE EVENT KILLER AND EVENT COUNTER
     function gameOver() {
         changeGame(false)
         changeGameId("0")
         setGameResult([])
-        killEventResult()
-        listenerChecker()
+        // killEventResult()
+        // listenerChecker()
     }
 
     //////////////////////////////////////
@@ -312,7 +170,7 @@ export default function Home() {
 
     //RETURNS THE MAIN PAGE
     return (
-        <div className="">
+        <div>
             {!inGame ? (
                 <div className="flex flex-col h-screen">
                     <Head>
@@ -328,7 +186,6 @@ export default function Home() {
                                     changeGame={changeGame}
                                     changeGameId={changeGameId}
                                     gameId={gameId}
-                                    rawgameid={rawgameid}
                                 />
                                 <Image
                                     src="/CoinFlipCoin.jpg"
@@ -356,7 +213,6 @@ export default function Home() {
                 <GamePlay
                     player={player}
                     opponent={opponent}
-                    gameId={gameId}
                     playerSymbol={playerSymbol}
                     gameResults={gameResults}
                     gameOver={gameOver}

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 import { ethers } from "ethers"
 import { useNotification } from "web3uikit"
 import Modal from "@/components/Modal"
+require("dotenv").config()
 
 export default function Header({ newUpdateUI, needToUpdateUI }) {
     //VARIABLES
@@ -67,9 +68,10 @@ export default function Header({ newUpdateUI, needToUpdateUI }) {
 
     //UPDATEUI(BALANCE OF THE USER)
     async function updateUI() {
-        const userbalance = (await balanceOf()).toString()
-        console.log("User Balance:", userbalance)
-        getBalance(userbalance)
+        // const userbalance = (await balanceOf()).toString()
+        // console.log("User Balance:", userbalance)
+        // getBalance(userbalance)
+        balanceOfEthers()
     }
 
     useEffect(() => {
@@ -96,6 +98,101 @@ export default function Header({ newUpdateUI, needToUpdateUI }) {
             onSuccess: handleSuccess,
             onError: error => console.log(error)
         })
+    }
+
+    // ETHERS CONTRACT INTERACTIONS
+    const depositEthers = async () => {
+        try {
+            const provider = new ethers.providers.Web3Provider(window.ethereum)
+            const signer = provider.getSigner()
+            const contract = new ethers.Contract(coinflipAddress, abi, signer)
+
+            // Estimate gas limit for the transaction
+            const estimatedGas = await contract.estimateGas.deposit({ value: _amountDeposit })
+            const gasLimit = estimatedGas
+                .mul(ethers.BigNumber.from("110"))
+                .div(ethers.BigNumber.from("100")) // Add a buffer
+
+            // Get current gas price
+            const gasPrice = await provider.getGasPrice()
+
+            // Send the transaction with the estimated gas limit and current gas price
+            const transaction = await contract.deposit({
+                value: _amountDeposit,
+                gasLimit,
+                gasPrice
+            })
+
+            // Wait for the transaction to be mined
+            const receipt = await transaction.wait()
+            console.log("Transaction successful!")
+
+            // Logic if success!
+            if (receipt.status === 1) {
+                updateUI()
+            }
+        } catch (error) {
+            console.error("Transaction failed:", error)
+        }
+    }
+
+    const withdrawEthers = async () => {
+        try {
+            const provider = new ethers.providers.Web3Provider(window.ethereum)
+            const signer = provider.getSigner()
+            const contract = new ethers.Contract(coinflipAddress, abi, signer)
+
+            // Estimate gas limit for the transaction
+            const estimatedGas = await contract.estimateGas.withdraw(_amountWithdraw.toString())
+            const gasLimit = estimatedGas
+                .mul(ethers.BigNumber.from("110"))
+                .div(ethers.BigNumber.from("100")) // Add a buffer
+
+            // Get current gas price
+            const gasPrice = await provider.getGasPrice()
+
+            // Send the transaction with the estimated gas limit and current gas price
+            const transaction = await contract.withdraw(_amountWithdraw.toString(), {
+                gasLimit,
+                gasPrice
+            })
+
+            // Wait for the transaction to be mined
+            const receipt = await transaction.wait()
+            console.log("Transaction successful!")
+
+            // Logic if success!
+            if (receipt.status === 1) {
+                updateUI()
+            }
+        } catch (error) {
+            console.error("Transaction failed:", error)
+        }
+    }
+
+    const balanceOfEthers = async () => {
+        try {
+            const provider = new ethers.providers.Web3Provider(window.ethereum)
+            const signer = provider.getSigner()
+            const contract = new ethers.Contract(coinflipAddress, abi, signer)
+
+            // Estimate gas limit for the transaction
+            const estimatedGas = await contract.estimateGas.balanceOf(account)
+            const gasLimit = estimatedGas
+                .mul(ethers.BigNumber.from("110"))
+                .div(ethers.BigNumber.from("100")) // Add a buffer
+
+            // Get current gas price
+            const gasPrice = await provider.getGasPrice()
+
+            // Send the transaction with the estimated gas limit and current gas price
+            const transaction = await contract.balanceOf(account)
+
+            // Logic if success!
+            getBalance(transaction.toString())
+        } catch (error) {
+            console.error("Transaction failed:", error)
+        }
     }
 
     return (
@@ -152,7 +249,7 @@ export default function Header({ newUpdateUI, needToUpdateUI }) {
                     />
                     <button
                         className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-1 px-20 mt-2 text-lg rounded"
-                        onClick={setDeposit}
+                        onClick={depositEthers}
                     >
                         DEPOSIT
                     </button>
@@ -185,7 +282,7 @@ export default function Header({ newUpdateUI, needToUpdateUI }) {
                     />
                     <button
                         className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-1 px-20 mt-2 text-lg rounded"
-                        onClick={setWithdraw}
+                        onClick={withdrawEthers}
                     >
                         WITHDRAW
                     </button>

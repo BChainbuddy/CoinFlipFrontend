@@ -21,11 +21,17 @@ export default function CreateGame({ needToUpdateUI, changeGameId, gameId }) {
     const [showModal, setShowModal] = useState(false)
     const [isGameCreated, setGameCreated] = useState(false)
 
+    // NOTIFICATIONS
     const dispatch = useNotification()
 
-    //FUNCTION THAT UPDATES UI(BALANCE) in Header
-    const CreateGameNeedToUpdateUI = () => {
-        needToUpdateUI(true)
+    const handleNewNotification = function() {
+        dispatch({
+            type: "info",
+            message: "Transaction Complete!",
+            title: "Tx Notification",
+            position: "topR",
+            icon: "bell"
+        })
     }
 
     //THIS TWO FUNCTIONS SET THE ENUM OF USER
@@ -47,40 +53,14 @@ export default function CreateGame({ needToUpdateUI, changeGameId, gameId }) {
         }
     }
 
-    const handleSuccess = async function(tx) {
-        await tx.wait(1)
-        handleNewNotification(tx)
-        CreateGameNeedToUpdateUI()
-    }
-
-    const handleNewNotification = function() {
-        dispatch({
-            type: "info",
-            message: "Transaction Complete!",
-            title: "Tx Notification",
-            position: "topR",
-            icon: "bell"
-        })
-    }
-
-    //SMART CONTRACT UNCTION TO INTERACT WITH
-    const { runContractFunction: startGame, isLoading, isFetching } = useWeb3Contract({
-        abi: abi,
-        contractAddress: coinflipAddress,
-        functionName: "startGame",
-        params: { _amount: _amount.toString(), _symbol: _symbol }
-    })
-
-    const { runContractFunction: cancelGame } = useWeb3Contract({
-        abi: abi,
-        contractAddress: coinflipAddress,
-        functionName: "cancelGame",
-        params: { _gameId: gameId.toString() }
-    })
-
+    /////////////////////////////////////
     // ETHERS CONTRACT INTERACTIONS
+
+    // Start game function
+    const [isLoadingStartGame, setIsLoadingStartGame] = useState(false)
     const startGameEthers = async () => {
         try {
+            setIsLoadingStartGame(true)
             const provider = new ethers.providers.Web3Provider(window.ethereum)
             const signer = provider.getSigner()
             const contract = new ethers.Contract(coinflipAddress, abi, signer)
@@ -103,16 +83,20 @@ export default function CreateGame({ needToUpdateUI, changeGameId, gameId }) {
             // Wait for the transaction to be mined
             const receipt = await transaction.wait()
             console.log("Transaction successful!")
+            handleNewNotification(receipt)
 
             // Logic if success!
             if (receipt.status === 1) {
                 setShowModal(true)
+                setIsLoadingStartGame(false)
             }
         } catch (error) {
             console.error("Transaction failed:", error)
+            setIsLoadingStartGame(false)
         }
     }
 
+    // Cancel game function
     const cancelGameEthers = async () => {
         if (gameId !== "0") {
             try {
@@ -138,6 +122,7 @@ export default function CreateGame({ needToUpdateUI, changeGameId, gameId }) {
                 // Wait for the transaction to be mined
                 const receipt = await transaction.wait()
                 console.log("Transaction successful!")
+                handleNewNotification(receipt)
 
                 // Logic if success!
                 if (receipt.status === 1) {
@@ -173,7 +158,7 @@ export default function CreateGame({ needToUpdateUI, changeGameId, gameId }) {
                             className="md:w-32 ml-2"
                         />
                         <button
-                            className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-1 px-2 text-lg rounded ml-2"
+                            className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-1 px-2 text-lg rounded ml-2 transition duration-200"
                             onClick={setBetAmount}
                         >
                             BET
@@ -181,13 +166,13 @@ export default function CreateGame({ needToUpdateUI, changeGameId, gameId }) {
                     </div>
                     <div className="mt-4 text-center">
                         <button
-                            className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-1 px-2 text-lg rounded mx-2"
+                            className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-1 px-2 text-lg rounded mx-2 transition duration-200"
                             onClick={setToHeads}
                         >
                             Choose Heads
                         </button>
                         <button
-                            className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-1 px-4 text-lg rounded mx-2"
+                            className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-1 px-4 text-lg rounded mx-2 transition duration-200"
                             onClick={setToTails}
                         >
                             Choose Tails
@@ -199,14 +184,14 @@ export default function CreateGame({ needToUpdateUI, changeGameId, gameId }) {
                     </div>
                     <div className="mt-4 text-center">
                         <button
-                            className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-5 px-8 text-2xl rounded"
+                            className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-5 px-8 text-2xl rounded transition duration-200"
                             onClick={startGameEthers}
-                            disabled={isLoading || isFetching}
+                            disabled={isLoadingStartGame ? true : false}
                         >
-                            {isLoading || isFetching ? (
-                                <div className="animate-spin spinner-border h-8 w-8 border-b-2 rounded-full"></div>
+                            {isLoadingStartGame ? (
+                                <div className="animate-spin spinner-border h-7 w-7 border-b-2 rounded-full"></div>
                             ) : (
-                                <div>Create a Game</div>
+                                <p>Create a Game</p>
                             )}
                         </button>
                     </div>
@@ -220,13 +205,13 @@ export default function CreateGame({ needToUpdateUI, changeGameId, gameId }) {
                             <div>Waiting for a game to START!!!</div>
                         </div>
                         <button
-                            className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-1 px-20 mt-2 text-lg rounded"
+                            className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-1 px-20 mt-2 text-lg rounded transition duration-200"
                             onClick={cancelGameEthers}
                         >
                             {gameId != 0 ? (
                                 <div>CancelGame</div>
                             ) : (
-                                <div className="animate-spin spinner-border h-8 w-8 border-b-2 rounded-full"></div>
+                                <div className="animate-spin spinner-border h-7 w-7 border-b-2 rounded-full"></div>
                             )}
                         </button>
                     </Modal>

@@ -8,7 +8,7 @@ import { useNotification } from "web3uikit"
 import Modal from "@/components/Modal"
 require("dotenv").config()
 
-export default function Header({ newUpdateUI, needToUpdateUI }) {
+export default function Header({ updateUI, setUpdateUI }) {
     //VARIABLES
     const { isWeb3Enabled, chainId: chainIdHex, isAuthenticated, user, account } = useMoralis()
     const chainId = parseInt(chainIdHex)
@@ -20,18 +20,7 @@ export default function Header({ newUpdateUI, needToUpdateUI }) {
     const [showModal, setShowModal] = useState(false)
     const [showModal2, setShowModal2] = useState(false)
 
-    useEffect(() => {
-        if (isWeb3Enabled) {
-            updateUI()
-        }
-    }, [isWeb3Enabled])
-
-    const handleSuccess = async function(tx) {
-        await tx.wait(1)
-        handleNewNotification(tx)
-        updateUI()
-    }
-
+    // NOTIFICATIONS
     const dispatch = useNotification()
 
     const handleNewNotification = function() {
@@ -44,65 +33,29 @@ export default function Header({ newUpdateUI, needToUpdateUI }) {
         })
     }
 
-    //SMART CONTRACT FUNCTIONS TO INTERACT WITH
-    const { runContractFunction: deposit } = useWeb3Contract({
-        abi: abi,
-        contractAddress: coinflipAddress,
-        functionName: "deposit",
-        msgValue: _amountDeposit
-    })
-
-    const { runContractFunction: withdraw } = useWeb3Contract({
-        abi: abi,
-        contractAddress: coinflipAddress,
-        functionName: "withdraw",
-        params: { _amount: _amountWithdraw }
-    })
-
-    const { runContractFunction: balanceOf } = useWeb3Contract({
-        abi: abi,
-        contractAddress: coinflipAddress,
-        functionName: "balanceOf",
-        params: { _address: account }
-    })
-
-    //UPDATEUI(BALANCE OF THE USER)
-    async function updateUI() {
-        // const userbalance = (await balanceOf()).toString()
-        // console.log("User Balance:", userbalance)
-        // getBalance(userbalance)
-        balanceOfEthers()
-    }
-
+    // Updates balance if updateUI changes
     useEffect(() => {
-        if (newUpdateUI) {
-            updateUI()
-            needToUpdateUI(false)
+        if (updateUI === true) {
+            updateBalance()
+            setUpdateUI(false)
         }
-    })
+    }, [updateUI])
 
-    //DEPOSIT FUNCTION
-    const setDeposit = async () => {
-        console.log("First we change", _amountDeposit.toString())
-        await deposit({
-            msgValue: _amountDeposit,
-            onSuccess: handleSuccess,
-            onError: error => console.log(error)
-        })
-    }
+    // Updates balance when client connects to wallet
+    useEffect(() => {
+        if (isWeb3Enabled) {
+            updateBalance()
+        }
+    }, [isWeb3Enabled])
 
-    //WITHDRAW FUNCTION
-    const setWithdraw = async () => {
-        console.log("We want to withdraw this much", _amountWithdraw.toString())
-        await withdraw({
-            onSuccess: handleSuccess,
-            onError: error => console.log(error)
-        })
-    }
-
+    /////////////////////////////////////
     // ETHERS CONTRACT INTERACTIONS
+
+    // Deposit function
+    const [isLoadingDeposit, setIsLoadingDeposit] = useState(false)
     const depositEthers = async () => {
         try {
+            setIsLoadingDeposit(true)
             const provider = new ethers.providers.Web3Provider(window.ethereum)
             const signer = provider.getSigner()
             const contract = new ethers.Contract(coinflipAddress, abi, signer)
@@ -126,18 +79,24 @@ export default function Header({ newUpdateUI, needToUpdateUI }) {
             // Wait for the transaction to be mined
             const receipt = await transaction.wait()
             console.log("Transaction successful!")
+            handleNewNotification(receipt)
 
             // Logic if success!
             if (receipt.status === 1) {
-                updateUI()
+                updateBalance()
+                setIsLoadingDeposit(false)
             }
         } catch (error) {
             console.error("Transaction failed:", error)
+            setIsLoadingDeposit(false)
         }
     }
 
+    // Withdraw function
+    const [isLoadingWithdraw, setIsLoadingWithdraw] = useState(false)
     const withdrawEthers = async () => {
         try {
+            setIsLoadingWithdraw(true)
             const provider = new ethers.providers.Web3Provider(window.ethereum)
             const signer = provider.getSigner()
             const contract = new ethers.Contract(coinflipAddress, abi, signer)
@@ -160,30 +119,25 @@ export default function Header({ newUpdateUI, needToUpdateUI }) {
             // Wait for the transaction to be mined
             const receipt = await transaction.wait()
             console.log("Transaction successful!")
+            handleNewNotification(receipt)
 
             // Logic if success!
             if (receipt.status === 1) {
-                updateUI()
+                updateBalance()
+                setIsLoadingWithdraw(false)
             }
         } catch (error) {
             console.error("Transaction failed:", error)
+            setIsLoadingWithdraw(false)
         }
     }
 
-    const balanceOfEthers = async () => {
+    // Update balance function
+    const updateBalance = async () => {
         try {
             const provider = new ethers.providers.Web3Provider(window.ethereum)
             const signer = provider.getSigner()
             const contract = new ethers.Contract(coinflipAddress, abi, signer)
-
-            // Estimate gas limit for the transaction
-            const estimatedGas = await contract.estimateGas.balanceOf(account)
-            const gasLimit = estimatedGas
-                .mul(ethers.BigNumber.from("110"))
-                .div(ethers.BigNumber.from("100")) // Add a buffer
-
-            // Get current gas price
-            const gasPrice = await provider.getGasPrice()
 
             // Send the transaction with the estimated gas limit and current gas price
             const transaction = await contract.balanceOf(account)
@@ -209,13 +163,13 @@ export default function Header({ newUpdateUI, needToUpdateUI }) {
                 </div>
                 <div className="flex space-x-8 ml-8 mt-2">
                     <button
-                        className="bg-amber-400 text-white hover:bg-amber-600 font-bold text-lg rounded p-1.5"
+                        className="bg-amber-400 text-white hover:bg-amber-600 font-bold text-lg rounded p-1.5 transition duration-200"
                         onClick={() => setShowModal(true)}
                     >
                         Deposit Funds
                     </button>
                     <button
-                        className="bg-amber-400 text-white hover:bg-amber-600 font-bold text-lg rounded p-1.5"
+                        className="bg-amber-400 text-white hover:bg-amber-600 font-bold text-lg rounded p-1.5 transition duration-200"
                         onClick={() => setShowModal2(true)}
                     >
                         Withdraw Funds
@@ -248,10 +202,15 @@ export default function Header({ newUpdateUI, needToUpdateUI }) {
                         }
                     />
                     <button
-                        className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-1 px-20 mt-2 text-lg rounded"
+                        className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-1 px-20 mt-2 text-lg rounded transition duration-200"
                         onClick={depositEthers}
+                        disabled={isLoadingDeposit ? true : false}
                     >
-                        DEPOSIT
+                        {isLoadingDeposit ? (
+                            <div className="animate-spin spinner-border h-7 w-7 border-b-2 rounded-full"></div>
+                        ) : (
+                            <p>DEPOSIT</p>
+                        )}
                     </button>
                 </div>
             </Modal>
@@ -281,10 +240,15 @@ export default function Header({ newUpdateUI, needToUpdateUI }) {
                         }
                     />
                     <button
-                        className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-1 px-20 mt-2 text-lg rounded"
+                        className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-1 px-20 mt-2 text-lg rounded transition duration-200"
                         onClick={withdrawEthers}
+                        disabled={isLoadingWithdraw ? true : false}
                     >
-                        WITHDRAW
+                        {isLoadingWithdraw ? (
+                            <div className="animate-spin spinner-border h-7 w-7 border-b-2 rounded-full"></div>
+                        ) : (
+                            <p>WITHDRAW</p>
+                        )}
                     </button>
                 </div>
             </Modal>

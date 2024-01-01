@@ -17,31 +17,8 @@ export default function JoinGame({ needToUpdateUI }) {
     const [availableGames, checkAvailableGames] = useState(0)
     const inputRef = useRef(null)
 
-    //FUNCTION TO UPDATES UI(BALANCE) in Header
-    const JoinGameNeedToUpdateUI = () => {
-        needToUpdateUI(true)
-    }
-
+    //NOTIFICATIONS
     const dispatch = useNotification()
-
-    useEffect(() => {
-        if (isWeb3Enabled) {
-        }
-    }, [isWeb3Enabled])
-
-    const handleSuccess = async function(tx) {
-        await tx.wait(1)
-        handleNewNotification(tx)
-        JoinGameNeedToUpdateUI()
-    }
-
-    //FUNCTION THAT RETREIVES DATA FROM INPUT
-    const setBetAmount = () => {
-        if (inputRef.current.value > 0) {
-            const amount = ethers.utils.parseEther(inputRef.current.value)
-            changeAmount(parseInt(amount))
-        }
-    }
 
     const handleNewNotification = function() {
         dispatch({
@@ -53,51 +30,23 @@ export default function JoinGame({ needToUpdateUI }) {
         })
     }
 
-    //GET ALL AVAILABLE GAMES
-    async function updateGames() {
-        allGamesBasedOnAmountEthers()
+    //FUNCTION THAT RETREIVES DATA FROM INPUT
+    const setBetAmount = () => {
+        if (inputRef.current.value > 0) {
+            const amount = ethers.utils.parseEther(inputRef.current.value)
+            changeAmount(parseInt(amount))
+        }
     }
 
-    //SMART CONTRACT FUNCTIONS TO INTERACT WITH
-    const { runContractFunction: allAvailableGames } = useWeb3Contract({
-        abi: abi,
-        contractAddress: coinflipAddress,
-        functionName: "allAvailableGames",
-        params: {}
-    })
-
-    const { runContractFunction: allGamesBasedOnAmount } = useWeb3Contract({
-        abi: abi,
-        contractAddress: coinflipAddress,
-        functionName: "allGamesBasedOnAmount",
-        params: { _amount: _amount.toString() }
-    })
-
-    const { runContractFunction: joinGame, isLoading, isFetching } = useWeb3Contract({
-        abi: abi,
-        contractAddress: coinflipAddress,
-        functionName: "joinGame",
-        params: { _amount: _amount.toString() }
-    })
-
+    /////////////////////////////////////
     // ETHERS CONTRACT INTERACTIONS
 
-    const allGamesBasedOnAmountEthers = async () => {
+    // All games based on amount function
+    const updateGames = async () => {
         try {
             const provider = new ethers.providers.Web3Provider(window.ethereum)
             const signer = provider.getSigner()
             const contract = new ethers.Contract(coinflipAddress, abi, signer)
-
-            // Estimate gas limit for the transaction
-            const estimatedGas = await contract.estimateGas.allGamesBasedOnAmount(
-                _amount.toString()
-            )
-            const gasLimit = estimatedGas
-                .mul(ethers.BigNumber.from("110"))
-                .div(ethers.BigNumber.from("100")) // Add a buffer
-
-            // Get current gas price
-            const gasPrice = await provider.getGasPrice()
 
             // Send the transaction with the estimated gas limit and current gas price
             const transaction = await contract.allGamesBasedOnAmount(_amount.toString())
@@ -109,8 +58,11 @@ export default function JoinGame({ needToUpdateUI }) {
         }
     }
 
+    // Join game function
+    const [isLoadingJoinGame, setIsLoadingJoinGame] = useState(false)
     const joinGameEthers = async () => {
         try {
+            setIsLoadingJoinGame(true)
             const provider = new ethers.providers.Web3Provider(window.ethereum)
             const signer = provider.getSigner()
             const contract = new ethers.Contract(coinflipAddress, abi, signer)
@@ -133,13 +85,16 @@ export default function JoinGame({ needToUpdateUI }) {
             // Wait for the transaction to be mined
             const receipt = await transaction.wait()
             console.log("Transaction successful!")
+            handleNewNotification(receipt)
 
             // Logic if success!
             if (receipt.status === 1) {
-                JoinGameNeedToUpdateUI()
+                needToUpdateUI(true)
+                setIsLoadingJoinGame(false)
             }
         } catch (error) {
             console.error("Transaction failed:", error)
+            setIsLoadingJoinGame(false)
         }
     }
 
@@ -165,7 +120,7 @@ export default function JoinGame({ needToUpdateUI }) {
                             className="md:w-32 ml-2"
                         />
                         <button
-                            className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-1 px-2 text-lg rounded ml-2"
+                            className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-1 px-2 text-lg rounded ml-2 transition duration-200"
                             onClick={setBetAmount}
                         >
                             BET
@@ -173,7 +128,7 @@ export default function JoinGame({ needToUpdateUI }) {
                     </div>
                     <div className="mt-4 text-center">
                         <button
-                            className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-1 px-2 text-lg rounded mx-2"
+                            className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-1 px-2 text-lg rounded mx-2 transition duration-200"
                             onClick={updateGames}
                         >
                             Available Games
@@ -186,14 +141,14 @@ export default function JoinGame({ needToUpdateUI }) {
                     </div>
                     <div className="mt-4 text-center">
                         <button
-                            className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-5 px-8 text-2xl rounded"
+                            className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-5 px-8 text-2xl rounded transition duration-200"
                             onClick={joinGameEthers}
-                            disabled={isLoading || isFetching}
+                            disabled={isLoadingJoinGame ? true : false}
                         >
-                            {isLoading || isFetching ? (
-                                <div className="animate-spin spinner-border h-8 w-8 border-b-2 rounded-full"></div>
+                            {isLoadingJoinGame ? (
+                                <div className="animate-spin spinner-border h-7 w-7 border-b-2 rounded-full"></div>
                             ) : (
-                                <div>Join a Game</div>
+                                <p>Join a Game</p>
                             )}
                         </button>
                     </div>

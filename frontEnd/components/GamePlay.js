@@ -24,6 +24,8 @@ export default function GamePlay({ player, opponent, playerSymbol, gameResults, 
     const [opponentPoints, changeOpponentPoints] = useState(0)
     const [coinflip, changeCoinFlip] = useState(2) // 2 -> placeholder,  0 -> heads wins, 1 -> tails wins
     const [gifUrl, setGifUrl] = useState("/ezgif.com-gif-maker(1).gif")
+
+    // RELOADS THE GIF TO A NEW STATE
     const reloadGif = () => {
         // Generate a unique query parameter value
         const timestamp = Date.now()
@@ -117,6 +119,7 @@ export default function GamePlay({ player, opponent, playerSymbol, gameResults, 
     const [tokenId, changeTokenId] = useState("")
     const [NFTaccount, changeNFTaccount] = useState("")
 
+    // MORALIS VIEW FUNCTIONS TO GET TOKEN STATS
     const { runContractFunction: getWins } = useWeb3Contract({
         abi: abiNFT,
         contractAddress: gamecoinAddress,
@@ -153,7 +156,6 @@ export default function GamePlay({ player, opponent, playerSymbol, gameResults, 
         setNFTlosses((await getLosses()).toString())
         console.log((await getLosses()).toString())
         setNFTamountwon(ethers.utils.formatEther((await getAmountWon()).toString()))
-        console.log((await getAmountWon()).toString())
         changeNFTaccount(opponent.toString())
     }
 
@@ -237,14 +239,18 @@ export default function GamePlay({ player, opponent, playerSymbol, gameResults, 
                                     <Image
                                         src="/gamecoinnfttransparent.png"
                                         alt="Coin Transparent Image"
-                                        className={playerPoints > 0 ? "" : "brightness-50"}
+                                        className={`${
+                                            playerPoints > 0 ? "" : "opacity-40"
+                                        } transition-opacity duration-500`}
                                         width={70}
                                         height={100}
                                     />
                                     <Image
                                         src="/gamecoinnfttransparent.png"
                                         alt="Coin Transparent Image"
-                                        className={playerPoints > 1 ? "" : "brightness-50"}
+                                        className={`${
+                                            playerPoints > 1 ? "" : "opacity-40"
+                                        } transition-opacity duration-500`}
                                         width={70}
                                         height={100}
                                     />
@@ -252,14 +258,18 @@ export default function GamePlay({ player, opponent, playerSymbol, gameResults, 
                                     <Image
                                         src="/gamecoinnfttransparent.png"
                                         alt="Coin Transparent Image"
-                                        className={playerPoints > 2 ? "" : "brightness-50"}
+                                        className={`${
+                                            playerPoints > 2 ? "" : "opacity-40"
+                                        } transition-opacity duration-500`}
                                         width={70}
                                         height={100}
                                     />
                                     <Image
                                         src="/gamecoinnfttransparent.png"
                                         alt="Coin Transparent Image"
-                                        className={playerPoints > 3 ? "" : "brightness-50"}
+                                        className={`${
+                                            playerPoints > 3 ? "" : "opacity-40"
+                                        } transition-opacity duration-500`}
                                         width={70}
                                         height={100}
                                     />
@@ -321,28 +331,36 @@ export default function GamePlay({ player, opponent, playerSymbol, gameResults, 
                                     <Image
                                         src="/gamecoinnfttransparent.png"
                                         alt="Coin Transparent Image"
-                                        className={opponentPoints > 0 ? "" : "brightness-50"}
+                                        className={`${
+                                            opponentPoints > 0 ? "" : "opacity-40"
+                                        } transition-opacity duration-500`}
                                         width={70}
                                         height={100}
                                     />
                                     <Image
                                         src="/gamecoinnfttransparent.png"
                                         alt="Coin Transparent Image"
-                                        className={opponentPoints > 1 ? "" : "brightness-50"}
+                                        className={`${
+                                            opponentPoints > 1 ? "" : "opacity-40"
+                                        } transition-opacity duration-500`}
                                         width={70}
                                         height={100}
                                     />
                                     <Image
                                         src="/gamecoinnfttransparent.png"
                                         alt="Coin Transparent Image"
-                                        className={opponentPoints > 2 ? "" : "brightness-50"}
+                                        className={`${
+                                            opponentPoints > 2 ? "" : "opacity-40"
+                                        } transition-opacity duration-500`}
                                         width={70}
                                         height={100}
                                     />
                                     <Image
                                         src="/gamecoinnfttransparent.png"
                                         alt="Coin Transparent Image"
-                                        className={opponentPoints > 3 ? "" : "brightness-50"}
+                                        className={`${
+                                            opponentPoints > 3 ? "" : "opacity-40"
+                                        } transition-opacity duration-500`}
                                         width={70}
                                         height={100}
                                     />
@@ -371,7 +389,7 @@ export default function GamePlay({ player, opponent, playerSymbol, gameResults, 
                     setShowModal(false)
                 }}
             >
-                <div className="font-bold font-sans text-xl text-gray-300 justify-center flex items-center">
+                <div className="font-bold font-sans text-xl text-gray-800 justify-center flex items-center">
                     <span
                         className={
                             winner.toString().toLocaleLowerCase() ==
@@ -401,7 +419,7 @@ export default function GamePlay({ player, opponent, playerSymbol, gameResults, 
                 }}
             >
                 <div className="justify-center flex flex-col items-center">
-                    <div className="font-bold font-sans text-xl text-gray-300">
+                    <div className="font-bold font-sans text-xl text-gray-800">
                         Waiting for the game to start...
                     </div>
                 </div>

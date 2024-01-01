@@ -15,20 +15,8 @@ export default function CoinMint({ initiateNftChecker }) {
     const gamecoinAddress =
         chainId in contractAddressesNFT ? contractAddressesNFT[chainId][0] : null
 
-    const { runContractFunction: nftMint } = useWeb3Contract({
-        abi: abiNFT,
-        contractAddress: gamecoinAddress,
-        functionName: "nftMint",
-        msgValue: ethers.utils.parseEther("0.05")
-    })
-
+    // NOTIFICATIONS
     const dispatch = useNotification()
-
-    const handleSuccess = async function(tx) {
-        await tx.wait(1)
-        handleNewNotification(tx)
-        initiateNftChecker(true)
-    }
 
     const handleNewNotification = function() {
         dispatch({
@@ -40,16 +28,53 @@ export default function CoinMint({ initiateNftChecker }) {
         })
     }
 
+    /////////////////////////////////////
+    // ETHERS CONTRACT INTERACTIONS
+
+    // Deposit function
+    const nftMint = async () => {
+        try {
+            const provider = new ethers.providers.Web3Provider(window.ethereum)
+            const signer = provider.getSigner()
+            const contract = new ethers.Contract(gamecoinAddress, abiNFT, signer)
+
+            // Estimate gas limit for the transaction
+            const estimatedGas = await contract.estimateGas.nftMint({
+                value: ethers.utils.parseEther("0.05")
+            })
+            const gasLimit = estimatedGas
+                .mul(ethers.BigNumber.from("110"))
+                .div(ethers.BigNumber.from("100")) // Add a buffer
+
+            // Get current gas price
+            const gasPrice = await provider.getGasPrice()
+
+            // Send the transaction with the estimated gas limit and current gas price
+            const transaction = await contract.nftMint({
+                value: ethers.utils.parseEther("0.05"),
+                gasLimit,
+                gasPrice
+            })
+
+            // Wait for the transaction to be mined
+            const receipt = await transaction.wait()
+            console.log("Transaction successful!")
+            handleNewNotification(receipt)
+
+            // Logic if success!
+            if (receipt.status === 1) {
+                initiateNftChecker(true)
+            }
+        } catch (error) {
+            console.error("Transaction failed:", error)
+        }
+    }
+
     return (
         <div className="items-center justify-center">
             <button
-                className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-4 px-20 mt-40 text-lg rounded"
-                onClick={async function() {
-                    await nftMint({
-                        onSuccess: handleSuccess,
-                        onError: error => console.log(error)
-                    })
-                }}
+                className="bg-amber-400 hover:bg-amber-600 text-white font-bold py-4 px-20 mt-40 text-lg rounded transition duration-200"
+                onClick={nftMint}
             >
                 Mint GAMECOIN To start using the dapp
             </button>

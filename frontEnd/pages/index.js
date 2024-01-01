@@ -20,7 +20,7 @@ export default function Home() {
     BACK TO OUR MAIN PAGE WITH USE OF USESTATE VARIABLE(inGame)*/
 
     //VARIABLE WHICH IS CALLED IN CREATE GAME AND JOIN GAME TO UPDATEUI IN HEADER(BALANCE) AFTER COMPLETED TRANSACTION
-    const [newUpdateUI, needToUpdateUI] = useState(false)
+    const [updateUI, setUpdateUI] = useState(false)
     const [inGame, changeGame] = useState(false)
 
     //GET FROM START EVENT TO PASS TO GAME
@@ -33,7 +33,6 @@ export default function Home() {
     //////////////////////////////////////
     const { isWeb3Enabled, chainId: chainIdHex, account } = useMoralis()
     const chainId = parseInt(chainIdHex)
-    const coinflipAddress = chainId in contractAddresses ? contractAddresses[chainId][0] : null
 
     //CONNECTING TO WEBSOCKET SERVER
     useEffect(() => {
@@ -126,8 +125,6 @@ export default function Home() {
         changeGame(false)
         changeGameId("0")
         setGameResult([])
-        // killEventResult()
-        // listenerChecker()
     }
 
     //////////////////////////////////////
@@ -138,12 +135,20 @@ export default function Home() {
     const gamecoinAddress =
         chainId in contractAddressesNFT ? contractAddressesNFT[chainId][0] : null
 
-    const { runContractFunction: balanceOf } = useWeb3Contract({
-        abi: abiNFT,
-        contractAddress: gamecoinAddress,
-        functionName: "balanceOf",
-        params: { owner: account }
-    })
+    // Update balance function
+    const balanceOf = async () => {
+        try {
+            const provider = new ethers.providers.Web3Provider(window.ethereum)
+            const signer = provider.getSigner()
+            const contract = new ethers.Contract(gamecoinAddress, abiNFT, signer)
+
+            // Send the transaction with the estimated gas limit and current gas price
+            const transaction = await contract.balanceOf(account)
+            return transaction
+        } catch (error) {
+            console.error("Transaction failed:", error)
+        }
+    }
 
     //CHECK IF THE ADDRESS HAS BALANCE A NFT
     async function nftChecker() {
@@ -177,12 +182,12 @@ export default function Home() {
                         <title>CoinFlip</title>
                         <meta name="description" content="CoinFlip minigame" />
                     </Head>
-                    <Header newUpdateUI={newUpdateUI} needToUpdateUI={needToUpdateUI} />
+                    <Header updateUI={updateUI} setUpdateUI={setUpdateUI} />
                     <div id="background" className="border-2 h-full border-amber-400">
                         {isNftOwner ? (
                             <div className="flex flex-row justify-center items-center py-12">
                                 <CreateGame
-                                    needToUpdateUI={needToUpdateUI}
+                                    needToUpdateUI={setUpdateUI}
                                     changeGame={changeGame}
                                     changeGameId={changeGameId}
                                     gameId={gameId}
@@ -194,7 +199,7 @@ export default function Home() {
                                     height={100}
                                     className="rounded-lg border-2 border-gray-800"
                                 />
-                                <JoinGame needToUpdateUI={needToUpdateUI} />
+                                <JoinGame needToUpdateUI={setUpdateUI} />
                             </div>
                         ) : (
                             <div className="flex items-center justify-center">
